@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Configure the AWSCloudFormationStackSetExecutionRole to enable use of your account as a target account in AWS CloudFormation StackSets. Aso adds a the OrganizationAccountAccessRole which can be assumed from the root account.
+
+Parameters:
+  TrustedAccountNumber:
+    Type: String
+    AllowedPattern: (\d{12})
+    ConstraintDescription: must be a 12 digit number.
+    Description: AWS Account Id of the master account (the account in which StackSets will be created).
+    MaxLength: 12
+    MinLength: 12
+
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref TrustedAccountNumber
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+  OrganizationAccountAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: OrganizationAccountAccessRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref TrustedAccountNumber
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess

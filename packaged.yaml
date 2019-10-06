@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'A Lambda function to synchronize IAM Roles with 3rd party Identity Providers.
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Outputs:
+  RoleSyncFunction:
+    Description: Role Sync Function ARN
+    Value:
+      Fn::GetAtt:
+      - RoleSyncFunction
+      - Arn
+  RoleSyncIamRole:
+    Description: Implicit IAM Role created for the role sync function
+    Value:
+      Fn::GetAtt:
+      - RoleSyncFunction
+      - Arn
+Resources:
+  RoleSyncFunction:
+    Properties:
+      CodeUri: s3://role-sync-lmbda/4271a67410dc3bd779562f72009de91b
+      Description: A function to sync roles with IDP providers
+      Environment:
+        Variables:
+          LOG_LEVEL: 10
+      Events:
+        Cloudwatch:
+          Properties:
+            Pattern:
+              detail:
+                state:
+                - terminated
+          Type: CloudWatchEvent
+        Periodic:
+          Properties:
+            Schedule: rate(5 minutes)
+          Type: Schedule
+      Handler: sync.app.handler
+      MemorySize: 128
+      Policies:
+      - AWSLambdaExecute
+      Runtime: python3.7
+      Timeout: 300
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

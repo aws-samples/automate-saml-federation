@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: creates roles in the member organisations which
+Parameters:
+  TrustedAccountNumber:
+    AllowedPattern: (\d{12})
+    ConstraintDescription: must be a 12 digit number.
+    Description: Trusted account number
+    MaxLength: '12'
+    MinLength: '12'
+    Type: String
+Resources:
+  AADUpdateTaskCrossAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWS_IAM_AAD_UpdateTask_CrossAccountRole
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            AWS:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:iam::'
+                - Ref: TrustedAccountNumber
+                - :root
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+Outputs:
+  RoleArn:
+    Description: The ARN value of the Cross-Account Role with IAM read-only permissions.
+    Value:
+      Fn::GetAtt:
+      - AADUpdateTaskCrossAccountRole
+      - Arn
+

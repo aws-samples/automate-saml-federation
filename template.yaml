@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  A Lambda function to synchronize IAM Roles with 3rd party Identity Providers.
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  RoleSyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: sync.app.handler
+      Runtime: python3.7
+      Description: A function to sync roles with IDP providers
+      MemorySize: 128
+      Timeout: 300
+      # Role: "arn:aws:iam::946156751766:role/AWS_IAM_AAD_UpdateTask_CrossAccountRole"
+      Policies:
+        - AWSLambdaExecute
+      Environment:
+        Variables:
+          LOG_LEVEL: 10
+      Events:
+        Periodic:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+        Cloudwatch:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              detail:
+                state:
+                  - terminated
+
+
+
+Outputs:
+  RoleSyncFunction:
+    Description: "Role Sync Function ARN"
+    Value: !GetAtt RoleSyncFunction.Arn
+  RoleSyncIamRole:
+    Description: "Implicit IAM Role created for the role sync function"
+    Value: !GetAtt RoleSyncFunction.Arn

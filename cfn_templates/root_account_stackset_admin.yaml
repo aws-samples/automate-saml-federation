@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Configure the AWSCloudFormationStackSetAdministrationRole to support AWS CloudFormation StackSets in managed accounts.
+
+Resources:
+  AdministrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: AssumeExecutionRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref AWS::AccountId
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
